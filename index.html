@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 Bureau Of Indian Standards Calendar - GH & RH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        /* Date Cell Classes */
+        .date-cell { min-height: 4.5rem; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5px; border-radius: 6px; position: relative; }
+        
+        .holiday-gh { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; z-index: 10; cursor: pointer; transition: all 0.2s; }
+        .holiday-rh { background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; opacity: 0.9; cursor: pointer; transition: all 0.2s; z-index: 10; }
+        .sat-sun { background-color: #f0fdf4; color: #15803d; font-weight: 900; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; z-index: 10; }
+        .regular-day { background-color: transparent; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; z-index: 10; }
+        
+        /* Dark Mode Classes */
+        .dark .holiday-gh { background-color: #450a0a; color: #fecaca; border-color: #7f1d1d; }
+        .dark .holiday-rh { background-color: #172554; color: #bfdbfe; border-color: #1e3a8a; }
+        .dark .sat-sun { background-color: #052e16; color: #86efac; }
+        .dark .regular-day:hover { background-color: #1e293b; border-color: #334155; }
+        
+        /* Hover Animations */
+        .holiday-gh:hover, .holiday-rh:hover, .sat-sun:hover, .regular-day:hover { transform: scale(1.08); z-index: 20; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .regular-day:hover { background-color: #f8fafc; border-color: #e2e8f0; }
+        
+        .holiday-label { font-size: 0.55rem; line-height: 0.7rem; text-align: center; margin-top: 2px; padding: 0 2px; word-break: break-word; font-weight: 700; text-transform: uppercase; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .special-day-glow {
+            box-shadow: 0 0 30px 10px rgba(255, 215, 0, 0.4);
+            border: 2px solid #ffd700 !important;
+            animation: pulse-gold 2s infinite;
+        }
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            70% { box-shadow: 0 0 20px 15px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+
+        #expanded-image-container.active { display: flex; animation: zoomIn 0.3s ease-out forwards; }
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 md:p-8 transition-colors duration-300">
+    
+    <!-- Dark Mode Toggle Button -->
+    <button onclick="toggleDarkMode()" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-yellow-400 hover:scale-110 transition-transform">
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+    </button>
+
+    <div class="max-w-7xl mx-auto relative">
+        <header class="text-center mb-10 pt-4">
+            <div class="flex items-center justify-center gap-4 mb-2">
+                <div class="bg-white rounded-full p-1 shadow-sm">
+                    <img 
+                        src="https://image2url.com/r2/default/images/1771497947848-b83f3e87-baba-4045-9284-3cf049a2945d.png" 
+                        alt="BIS Logo" 
+                        class="w-14 h-14 md:w-16 md:h-16 object-contain"
+                    >
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-800 dark:text-slate-100 tracking-tight transition-colors text-left">BIS Calendar 2026</h1>
+            </div>
+            
+            <p class="text-slate-500 dark:text-slate-400 font-medium italic transition-colors">Bureau of Indian Standards (Govt. of India)</p>
+            
+            <div class="flex flex-wrap justify-center gap-4 md:gap-8 mt-8 text-xs font-bold uppercase tracking-wider">
+                <span class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <span class="w-3 h-3 bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700 rounded-full"></span> Weekends
+                </span>
+                <span class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <span class="w-3 h-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-full"></span> Gazetted (GH)
+                </span>
+                <span class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <span class="w-3 h-3 bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700 rounded-full"></span> Restricted (RH)
+                </span>
+            </div>
+            <p class="text-xs text-orange-500 dark:text-orange-400 mt-4 animate-pulse font-bold tracking-widest uppercase">Click on ANY date for Hindu Calendar details</p>
+        </header>
+
+        <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8"></div>
+
+        <footer class="mt-16 mb-8 text-right border-t border-slate-200 dark:border-slate-800 pt-6">
+            <p class="text-slate-400 dark:text-slate-500 font-medium italic text-sm pr-4">Designed by <span onclick="openProfileModal()" class="text-slate-600 dark:text-slate-300 hover:text-pink-600 dark:hover:text-pink-400 transition-colors underline decoration-dotted cursor-pointer font-bold">Nvn Arya</span></p>
+        </footer>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden z-[60] transition-opacity duration-300" onclick="closeModal()"></div>
+
+    <!-- Detail Modal Content -->
+    <div id="modal-content" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl z-[70] hidden transition-all duration-300 p-0 overflow-hidden border border-slate-100 dark:border-slate-700">
+        <div id="modal-header" class="p-6 text-white transition-colors duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span id="modal-type" class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/20 mb-2"></span>
+                    <h2 id="modal-title" class="text-2xl font-bold leading-tight"></h2>
+                </div>
+                <button onclick="closeModal()" class="text-white/70 hover:text-white hover:bg-white/10 rounded-full p-1 transition-colors flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 mt-4 text-white/90 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span id="modal-date"></span>
+            </div>
+        </div>
+        
+        <div class="p-6 bg-white dark:bg-slate-800 max-h-[60vh] overflow-y-auto">
+            <!-- Optional Holiday Desc -->
+            <div id="holiday-section" class="mb-6 hidden">
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">About this day</h3>
+                <p id="modal-desc" class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm"></p>
+            </div>
+
+            <!-- Hindu Calendar Data Section -->
+            <div id="panchang-section">
+                <h3 class="text-xs font-bold text-orange-500 dark:text-orange-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10"></path>
+                    </svg>
+                    Hindu Calendar Details
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Tithi</div>
+                        <div id="modal-tithi" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Paksha</div>
+                        <div id="modal-paksha" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Maah (Month)</div>
+                        <div id="modal-maah" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Samvat Year</div>
+                        <div id="modal-samvat" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Udaya Lagan</div>
+                        <div id="modal-lagna" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-950/30 p-3 rounded-lg border border-orange-100 dark:border-orange-900/50">
+                        <div class="text-orange-600 dark:text-orange-500 text-[10px] font-bold uppercase mb-1 tracking-wider">Chandra Rashi</div>
+                        <div id="modal-rashi" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight"></div>
+                    </div>
+                </div>
+                <div class="mt-3 bg-gradient-to-r from-orange-100/60 to-orange-50/20 dark:from-orange-900/30 dark:to-orange-950/10 p-4 rounded-lg border border-orange-200 dark:border-orange-800/50">
+                    <div class="text-orange-700 dark:text-orange-400 text-[10px] font-bold uppercase mb-2 tracking-wider flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        Daily Rashifal (Mood & Vibe)
+                    </div>
+                    <div id="modal-rashifal" class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-900 p-4 text-center border-t border-slate-100 dark:border-slate-700">
+            <button onclick="closeModal()" class="px-6 py-2 w-full sm:w-auto bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">Close</button>
+        </div>
+    </div>
+
+    <!-- Profile Modal Content -->
+    <div id="profile-modal" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl z-[70] hidden transition-all duration-300 p-8 flex flex-col items-center border border-slate-100 dark:border-slate-700 text-center">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div onclick="expandImage('https://image2url.com/r2/default/images/1771496186546-1a78a325-b0dc-49e8-aff5-cd8c7e61e792.png')" class="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-1 mb-5 shadow-lg transform hover:scale-105 transition-transform duration-300 cursor-zoom-in">
+            <div class="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-800">
+                 <img src="https://image2url.com/r2/default/images/1771496186546-1a78a325-b0dc-49e8-aff5-cd8c7e61e792.png" alt="Nvn Arya" class="w-full h-full object-cover">
+            </div>
+        </div>
+        <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-1 tracking-tight">Nvn Arya</h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mb-6 font-medium">Calendar Creator</p>
+        
+        <a href="https://www.instagram.com/i_am_nvi?igsh=ZHdha2UxYWNyNjhy" target="_blank" class="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl hover:translate-y-[-2px] transition-all duration-200 group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:animate-bounce" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+            Follow on Instagram
+        </a>
+    </div>
+
+    <!-- Image Expander Modal -->
+    <div id="expanded-image-container" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8" onclick="closeImageExpander()">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
+        <div class="relative max-w-2xl w-full flex flex-col items-center">
+            <button class="absolute -top-12 right-0 md:-right-12 text-white/50 hover:text-white transition-colors p-2" onclick="closeImageExpander()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img id="expanded-profile-img" src="" alt="Expanded View" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl border-4 border-white/10 object-contain">
+            <div class="mt-6 text-center">
+                <h3 class="text-white text-xl font-bold tracking-tight">Nvn Arya</h3>
+                <p class="text-white/60 text-sm">Designer & Developer</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gh = [
+            { date: '2026-01-26', name: 'Republic Day', description: 'Honors the date on which the Constitution of India came into effect in 1950, turning the nation into a newly formed republic.' },
+            { date: '2026-03-04', name: 'Holi', description: 'The Festival of Colors, celebrating the arrival of spring, the victory of good over evil, and the enduring love of Lord Krishna and Radha.' },
+            { date: '2026-03-21', name: 'Id-ul-Fitr', description: 'Marks the end of Ramadan, the Islamic holy month of fasting and prayer. The date is subject to moon sighting.' },
+            { date: '2026-03-26', name: 'Ram Navami', description: 'Celebrates the birth anniversary of Lord Rama, the seventh avatar of King Dasharatha and Queen Kausalya.' },
+            { date: '2026-03-31', name: 'Mahavir Jayanti', description: 'The most important religious holiday for Jains, celebrating the birth of Lord Mahavir, the 24th Tirthankara.' },
+            { date: '2026-04-03', name: 'Good Friday', description: 'A Christian holiday commemorating the crucifixion of Jesus and his death at Calvary.' },
+            { date: '2026-05-01', name: 'Budha Purnima', description: 'Commemorates the birth, enlightenment, and death of Gautama Buddha.' },
+            { date: '2026-05-27', name: 'Id-ul-Zuha (Bakrid)', description: 'The "Festival of Sacrifice," honoring the willingness of Ibrahim (Abraham) to sacrifice his son as an act of obedience to God.' },
+            { date: '2026-06-26', name: 'Muharram', description: 'The first month of the Islamic calendar. The 10th day (Ashura) mourns the martyrdom of Hussein ibn Ali.' },
+            { date: '2026-08-15', name: 'Independence Day', description: 'Commemorates India\'s independence from the United Kingdom on 15 August 1947.' },
+            { date: '2026-08-26', name: 'Milad-un-Nabi', description: 'Commemorates the birthday of the Islamic prophet Muhammad.' },
+            { date: '2026-09-04', name: 'Janmashtami', description: 'Celebrates the birth of Krishna, the eighth avatar of Vishnu.' },
+            { date: '2026-10-02', name: 'Mahatma Gandhi Birthday', description: 'Celebrates the birthday of Mahatma Gandhi, the "Father of the Nation".' },
+            { date: '2026-10-20', name: 'Dussehra', description: 'Marks the victory of Rama over the demon king Ravana, symbolizing the victory of good over evil.' },
+            { date: '2026-11-08', name: 'Diwali', description: 'The "Festival of Lights," symbolizing the spiritual victory of light over darkness, good over evil, and knowledge over ignorance.' },
+            { date: '2026-11-24', name: 'Guru Nanak Birthday', description: 'Celebrates the birth of the first Sikh Guru, Guru Nanak Dev Ji.' },
+            { date: '2026-12-25', name: 'Christmas Day', description: 'An annual festival commemorating the birth of Jesus Christ.' }
+        ];
+
+        const rh = [
+            { date: '2026-01-01', name: 'New Year Day', description: 'The first day of the year on the modern Gregorian calendar.' },
+            { date: '2026-01-13', name: 'Lohri', description: 'A popular winter folk festival celebrated primarily in Northern India.' },
+            { date: '2026-01-14', name: 'Makar Sankranti', description: 'Dedicated to the deity Surya (Sun), marking the sun\'s transit into Makara (Capricorn).' },
+            { date: '2026-01-15', name: 'Magha Bihu/Pongal', description: 'Harvest festivals celebrated in Assam (Magh Bihu) and Tamil Nadu (Pongal).' },
+            { date: '2026-01-23', name: 'Basant Panchami', description: 'Dedicated to Goddess Saraswati, marking the preparation for the arrival of spring.' },
+            { date: '2026-01-30', name: 'Hazarat Ali Birthday', description: 'Commemorates the birth of Ali ibn Abi Talib, the cousin and son-in-law of Prophet Muhammad.' },
+            { date: '2026-02-01', name: 'Guru Ravi Das Birthday', description: 'Celebrates the birth of Guru Ravidas, a Bhakti movement poet-saint.' },
+            { date: '2026-02-12', name: 'Dayananda Saraswati Birthday', description: 'Birth anniversary of the founder of the Arya Samaj.' },
+            { date: '2026-02-15', name: 'Maha Shivaratri', description: 'A Hindu festival celebrated annually in honour of the god Shiva.' },
+            { date: '2026-02-19', name: 'Shivaji Jayanti', description: 'Birth anniversary of the Maratha emperor Chhatrapati Shivaji Maharaj.' },
+            { date: '2026-03-03', name: 'Holika Dahan', description: 'Celebrated the night before Holi, symbolizing the burning of the demoness Holika.' },
+            { date: '2026-03-20', name: 'Gudi Padwa/Ugadi', description: 'New Year\'s Day for people of Maharashtra (Gudi Padwa) and Andhra/Karnataka (Ugadi).' },
+            { date: '2026-03-22', name: 'Easter Sunday', description: 'Celebrates the resurrection of Jesus from the dead.' },
+            { date: '2026-04-01', name: 'Chaitra Sukladi', description: 'New Year based on the lunar calendar.' },
+            { date: '2026-04-14', name: 'Ambedkar Jayanti', description: 'Baba Saheb Dr. B. R.Ambedkar jayanti and Harvest festivals celebrated in Punjab (Vaisakhi) and Kerala (Vishu).' },
+            { date: '2026-05-09', name: 'Guru Rabindranath Birthday', description: 'Birth anniversary of the poet, Nobel laureate, and philosopher Rabindranath Tagore.' },
+            { date: '2026-07-16', name: 'Rath Yatra', description: 'A major Hindu festival associated with Lord Jagannath held at Puri.' },
+            { date: '2026-08-16', name: 'Parsi New Year', description: 'Also known as Navroz, marking the beginning of the Iranian calendar.' },
+            { date: '2026-08-27', name: 'Onam', description: 'An annual harvest festival celebrated in the state of Kerala.' },
+            { date: '2026-08-28', name: 'Raksha Bandhan', description: 'Celebrates the bond of protection and love between brothers and sisters.' },
+            { date: '2026-09-14', name: 'Ganesh Chaturthi', description: 'Celebrates the arrival of Lord Ganesh to earth.' },
+            { date: '2026-10-18', name: 'Maha Saptami', description: 'The seventh day of Durga Puja.' },
+            { date: '2026-10-19', name: 'Maha Ashtami', description: 'The eighth day of Durga Puja, one of the most auspicious days.' },
+            { date: '2026-10-21', name: 'Vijayadashami', description: 'Celebrated as the victory of good over evil, concluding Durga Puja.' },
+            { date: '2026-10-26', name: 'Maharishi Valmiki Birthday', description: 'Birth anniversary of the sage Valmiki, the author of the epic Ramayana.' },
+            { date: '2026-10-29', name: 'Karaka Chaturthi', description: 'Also known as Karwa Chauth, where married women fast for the longevity of their husbands.' },
+            { date: '2026-11-07', name: 'Naraka Chaturdasi', description: 'Celebrated one day before Diwali, marking the defeat of Narakasura.' },
+            { date: '2026-11-09', name: 'Govardhan Puja', description: 'Devotees prepare and offer a large variety of vegetarian food to Krishna.' },
+            { date: '2026-11-10', name: 'Bhai Dooj', description: 'Similar to Raksha Bandhan, celebrating the bond between brothers and sisters.' },
+            { date: '2026-11-16', name: 'Chhath Puja', description: 'A festival dedicated to the Sun God (Surya) and Chhathi Maiya.' },
+            { date: '2026-11-20', name: 'Guru Teg Bahadur Day', description: 'Commemorates the martyrdom of the ninth Sikh Guru.' },
+            { date: '2026-12-24', name: 'Christmas Eve', description: 'The evening or entire day before Christmas Day.' },
+            { date: '2026-07-03', name: 'Nvn\'s Birthday', description: 'The Birthday Celebration of Navin Arya(Personal),Not Restricted Holiday.' }
+        ];
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+        // Offline algorithm mapping exact 2026 Lunar phases to determine Tithi & Month dynamically
+        const newMoons = [
+            { d: new Date("2025-11-20T06:47:00Z"), m: "Margashirsha", c: -2 },
+            { d: new Date("2025-12-20T01:43:00Z"), m: "Pausha", c: -1 },
+            { d: new Date("2026-01-18T19:21:00Z"), m: "Magha", c: 0 },
+            { d: new Date("2026-02-17T12:01:00Z"), m: "Phalguna", c: 1 },
+            { d: new Date("2026-03-19T05:23:00Z"), m: "Chaitra", c: 2 },
+            { d: new Date("2026-04-17T21:46:00Z"), m: "Vaishakha", c: 3 },
+            { d: new Date("2026-05-17T11:58:00Z"), m: "Jyeshtha", c: 4 },
+            { d: new Date("2026-06-15T23:36:00Z"), m: "Ashadha", c: 5 },
+            { d: new Date("2026-07-15T09:15:00Z"), m: "Shravana", c: 6 },
+            { d: new Date("2026-08-13T17:35:00Z"), m: "Bhadrapada", c: 7 },
+            { d: new Date("2026-09-12T01:31:00Z"), m: "Ashwin", c: 8 },
+            { d: new Date("2026-10-11T09:59:00Z"), m: "Kartika", c: 9 },
+            { d: new Date("2026-11-09T19:42:00Z"), m: "Margashirsha", c: 10 },
+            { d: new Date("2026-12-09T07:11:00Z"), m: "Pausha", c: 11 },
+            { d: new Date("2027-01-08T00:03:00Z"), m: "Magha", c: 12 }
+        ];
+
+        function getHinduCalendarDetails(dateStr) {
+            const targetDate = new Date(dateStr + 'T06:30:00Z'); // Roughly Mid-day IST
+            
+            let lastNewMoon = newMoons[0];
+            let nextNewMoon = newMoons[1];
+            
+            for (let i = 0; i < newMoons.length - 1; i++) {
+                if (targetDate >= newMoons[i].d && targetDate < newMoons[i+1].d) {
+                    lastNewMoon = newMoons[i];
+                    nextNewMoon = newMoons[i+1];
+                    break;
+                }
+            }
+            
+            const diffMs = targetDate.getTime() - lastNewMoon.d.getTime();
+            const cycleLengthMs = nextNewMoon.d.getTime() - lastNewMoon.d.getTime();
+            const phase = diffMs / cycleLengthMs;
+            let tithiNumber = Math.floor(phase * 30) + 1;
+            
+            let paksha = tithiNumber <= 15 ? "Shukla" : "Krishna";
+            let tithiDisplayNumber = tithiNumber > 15 ? tithiNumber - 15 : tithiNumber;
+            
+            const tithiNames = ["Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Purnima", "Amavasya"];
+            
+            let tithiName = tithiNames[tithiDisplayNumber - 1] || "Pratipada";
+            if (tithiNumber === 15) tithiName = "Purnima";
+            if (tithiNumber === 30) tithiName = "Amavasya";
+
+            // Purnimanta month calculation (dominant in North India)
+            let purnimantaMonth = tithiNumber <= 15 ? lastNewMoon.m : nextNewMoon.m;
+            
+            // Samvat (Changes on Chaitra Shukla Pratipada)
+            let isNewYear = false;
+            if (lastNewMoon.c >= 2) isNewYear = true;
+            if (lastNewMoon.c === 1 && tithiNumber > 15) isNewYear = false;
+
+            // Rashi & Lagan Math calculations based on 2026 Epoch
+            const epoch = new Date("2026-01-01T00:00:00Z");
+            const daysSinceEpoch = (new Date(dateStr + "T00:00:00Z") - epoch) / (1000 * 60 * 60 * 24);
+
+            // Moon moves ~13.176 degrees/day. Jan 1 2026 Moon Longitude is ~80 deg (Mithuna)
+            let moonLon = (80 + 13.176396 * daysSinceEpoch) % 360;
+            if (moonLon < 0) moonLon += 360;
+            const moonRashiIdx = Math.floor(moonLon / 30);
+
+            // Sun moves ~0.9856 degrees/day. Jan 1 2026 Sun Longitude is ~257 deg (Dhanu)
+            let sunLon = (257 + 0.985647 * daysSinceEpoch) % 360;
+            if (sunLon < 0) sunLon += 360;
+            const sunRashiIdx = Math.floor(sunLon / 30); // Sunrise Lagna roughly equals Sun Sign
+
+            const rashiNames = ["Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", "Karka (Cancer)", "Simha (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"];
+            
+            const rashifalVibes = [
+                "High energy and dynamic actions! Favorable for bold decisions, taking initiatives, and physical activities.", // Mesha
+                "A stable and grounded day. Excellent for focusing on finances, family matters, and enjoying good food.", // Vrishabha
+                "Communicative and adaptable vibe. Great for networking, writing, learning, and short travels.", // Mithuna
+                "Emotional and nurturing energy. Highly recommended to spend time on self-care, home, and family bonding.", // Karka
+                "Confident and expressive. A wonderful day for leadership, entertainment, romance, and creative pursuits.", // Simha
+                "Analytical and organized day. Best for clearing backlogs, detailed planning, and health routines.", // Kanya
+                "Balanced and harmonious. Focus on partnerships, negotiations, aesthetics, and maintaining peace.", // Tula
+                "Intense and transformative. Deep research, intuition, and uncovering hidden matters are heavily favored.", // Vrishchika
+                "Optimistic and adventurous. Travel, philosophical thinking, and higher learning are perfectly highlighted.", // Dhanu
+                "Disciplined and ambitious. Focus heavily on career goals, structuring your routine, and long-term planning.", // Makara
+                "Innovative and social vibe. Group activities, friendships, futuristic thinking, and tech endeavors will succeed.", // Kumbha
+                "Intuitive and compassionate. Spiritual pursuits, rest, charity, and creative imagination are highly recommended." // Meena
+            ];
+            
+            return {
+                tithi: tithiName,
+                paksha: paksha + ' Paksha',
+                maah: purnimantaMonth,
+                vikramSamvat: isNewYear ? 2083 : 2082,
+                sakaSamvat: isNewYear ? 1948 : 1947,
+                udayaLagna: rashiNames[sunRashiIdx],
+                chandraRashi: rashiNames[moonRashiIdx],
+                rashifal: rashifalVibes[moonRashiIdx]
+            };
+        }
+
+        function generateCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            for (let m = 0; m < 12; m++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = "bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col hover:shadow-md transition-shadow transition-colors";
+                
+                let html = `<h3 class="font-bold text-base text-slate-800 dark:text-slate-100 mb-4 text-center border-b border-slate-100 dark:border-slate-700 pb-2 flex justify-between items-center px-2">
+                                <span>${monthNames[m]} 2026</span>
+                                <span class="text-xs font-normal text-slate-400 dark:text-slate-500">0${m+1}</span>
+                            </h3>`;
+                html += `<div class="grid grid-cols-7 text-center text-[0.65rem] font-extrabold text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wide">`;
+                dayLabels.forEach(d => html += `<div>${d}</div>`);
+                html += `</div>`;
+                html += `<div class="grid grid-cols-7 gap-1 text-center">`;
+
+                const firstDay = new Date(2026, m, 1).getDay();
+                const daysInMonth = new Date(2026, m + 1, 0).getDate();
+                let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+                for (let i = 0; i < startOffset; i++) html += `<div class="date-cell"></div>`;
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const ghHolidays = gh.find(h => h.date === dateStr);
+                    const rhHolidays = rh.find(h => h.date === dateStr);
+                    const dayOfWeek = new Date(2026, m, d).getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    
+                    let cellClass = "date-cell ";
+                    let label = "";
+                    let clickHandler = "";
+                    let title = "";
+                    let type = "";
+                    let description = "";
+
+                    if (ghHolidays) {
+                        cellClass += "holiday-gh";
+                        label = ghHolidays.name;
+                        title = ghHolidays.name;
+                        description = ghHolidays.description;
+                        type = "Gazetted Holiday";
+                    } else if (rhHolidays) {
+                        cellClass += "holiday-rh";
+                        label = rhHolidays.name;
+                        title = rhHolidays.name;
+                        description = rhHolidays.description;
+                        type = "Restricted Holiday";
+                    } else if (isWeekend) {
+                        cellClass += "sat-sun";
+                        title = dayOfWeek === 0 ? "Sunday" : "Saturday";
+                        type = "Weekend Off";
+                    } else {
+                        cellClass += "regular-day text-slate-600 dark:text-slate-300";
+                        title = `${d} ${monthNames[m]} 2026`;
+                        type = "Regular Day";
+                    }
+
+                    const safeTitle = title.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const safeDesc = description.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    clickHandler = `onclick="openModal('${safeTitle}', '${dateStr}', '${type}', '${safeDesc}')"`;
+
+                    html += `<div class="${cellClass}" ${clickHandler}>
+                                <span class="text-sm font-black">${d}</span>
+                                ${label ? `<span class="holiday-label">${label}</span>` : ''}
+                             </div>`;
+                }
+
+                html += `</div>`;
+                monthDiv.innerHTML = html;
+                grid.appendChild(monthDiv);
+            }
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        }
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        function triggerConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 110 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
+              if (timeLeft <= 0) return clearInterval(interval);
+              var particleCount = 50 * (timeLeft / duration);
+              confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+              confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
+        function openModal(title, dateStr, type, description) {
+            const backdrop = document.getElementById('modal-backdrop');
+            const content = document.getElementById('modal-content');
+            const dateObj = new Date(dateStr);
+            const formattedDate = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-date').innerText = formattedDate;
+            document.getElementById('modal-type').innerText = type;
+            
+            // Handle Event/Holiday Description
+            const descEl = document.getElementById('modal-desc');
+            const holidaySection = document.getElementById('holiday-section');
+            if (description && description.trim() !== "undefined" && description.trim() !== "") {
+                descEl.innerText = description;
+                holidaySection.classList.remove('hidden');
+            } else {
+                holidaySection.classList.add('hidden');
+            }
+
+            // Calculate & Display Hindu Calendar (Panchang) details
+            const hinduInfo = getHinduCalendarDetails(dateStr);
+            document.getElementById('modal-tithi').innerText = hinduInfo.tithi;
+            document.getElementById('modal-paksha').innerText = hinduInfo.paksha;
+            document.getElementById('modal-maah').innerText = hinduInfo.maah;
+            document.getElementById('modal-samvat').innerText = `VS ${hinduInfo.vikramSamvat} | Saka ${hinduInfo.sakaSamvat}`;
+            document.getElementById('modal-lagna').innerText = hinduInfo.udayaLagna;
+            document.getElementById('modal-rashi').innerText = hinduInfo.chandraRashi;
+            document.getElementById('modal-rashifal').innerText = hinduInfo.rashifal;
+
+            // Dynamic Header Coloring Based on Date Type
+            const header = document.getElementById('modal-header');
+            const typeBadge = document.getElementById('modal-type');
+            
+            if (type.includes('Gazetted')) {
+                header.className = "p-6 text-white bg-gradient-to-br from-red-600 to-red-800 dark:from-red-800 dark:to-red-950 transition-colors";
+                typeBadge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/20 mb-2 text-white";
+            } else if (type.includes('Restricted')) {
+                header.className = "p-6 text-slate-800 bg-gradient-to-br from-blue-100 to-blue-300 dark:from-blue-900 dark:to-slate-900 dark:text-white transition-colors";
+                typeBadge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/10 dark:bg-white/10 mb-2 text-blue-900 dark:text-blue-100";
+            } else if (type.includes('Weekend')) {
+                header.className = "p-6 text-white bg-gradient-to-br from-green-600 to-green-800 dark:from-green-900 dark:to-slate-900 transition-colors";
+                typeBadge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/20 mb-2 text-white";
+            } else {
+                header.className = "p-6 text-slate-800 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-900 dark:text-white transition-colors";
+                typeBadge.className = "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/10 dark:bg-white/10 mb-2 text-slate-700 dark:text-slate-300";
+            }
+
+            if (title.toLowerCase().includes("nvn's birthday")) {
+                 content.classList.add('special-day-glow');
+                 triggerConfetti();
+            } else {
+                 content.classList.remove('special-day-glow');
+            }
+
+            backdrop.classList.remove('hidden');
+            content.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.add('opacity-100');
+                content.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function openProfileModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            const profileContent = document.getElementById('profile-modal');
+            backdrop.classList.remove('hidden');
+            profileContent.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.add('opacity-100');
+                profileContent.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            const holidayContent = document.getElementById('modal-content');
+            const profileContent = document.getElementById('profile-modal');
+            
+            backdrop.classList.remove('opacity-100');
+            if(holidayContent) {
+                holidayContent.classList.remove('opacity-100', 'scale-100');
+                setTimeout(() => holidayContent.classList.remove('special-day-glow'), 300);
+            }
+            if(profileContent) profileContent.classList.remove('opacity-100', 'scale-100');
+
+            setTimeout(() => {
+                backdrop.classList.add('hidden');
+                if(holidayContent) holidayContent.classList.add('hidden');
+                if(profileContent) profileContent.classList.add('hidden');
+            }, 300);
+        }
+
+        function expandImage(src) {
+            const expander = document.getElementById('expanded-image-container');
+            const img = document.getElementById('expanded-profile-img');
+            img.src = src;
+            expander.classList.remove('hidden');
+            expander.classList.add('active');
+        }
+
+        function closeImageExpander() {
+            const expander = document.getElementById('expanded-image-container');
+            expander.classList.add('hidden');
+            expander.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+                closeImageExpander();
+            }
+        });
+
+        window.onload = generateCalendar;
+    </script>
+</body>
+</html>
