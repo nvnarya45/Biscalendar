@@ -1,0 +1,20 @@
+{
+  "name": "India Holiday Calendar",
+  "short_name": "Holidays",
+  "description": "Gazetted & Restricted holiday calendar for India with Panchang, notes, and an admin editor.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#ff2a85",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icon-16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "icon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
